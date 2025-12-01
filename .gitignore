@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.local
+*.sqlite
+data/
+logs/
+backend/data/
+backend/logs/
+
+# Node
+node_modules/
+.next/
+dist/
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
