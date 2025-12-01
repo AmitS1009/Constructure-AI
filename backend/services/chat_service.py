@@ -1,7 +1,7 @@
 import os
 import google.generativeai as genai
 from typing import List, Dict, Any
-from .retrieval_service import hybrid_search
+from services.retrieval_service import hybrid_search
 
 # Configure Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -25,41 +25,51 @@ Deliverable format:
 - If you are not sure, be explicit: "Could not find explicit spec in provided docs."
 """
 
-async def generate_answer(question: str, history: List[Dict[str, str]] = []) -> Dict[str, Any]:
+async def generate_answer_stream(question: str, history: List[Dict[str, str]] = [], thread_id: int = None):
     # 1. Retrieve Context
-    retrieved_chunks = hybrid_search(question)
+    retrieved_chunks = hybrid_search(question, thread_id=thread_id)
     
     context_str = ""
     for chunk in retrieved_chunks:
         context_str += f">>> [{chunk['doc_name']} - page {chunk['page_num']} - chunk {chunk['chunk_id']}] {chunk['text']}\n\n"
         
     # 2. Construct Prompt
-    # Note: History handling can be improved by appending previous QA pairs to the prompt or using Gemini's chat history object
-    # For now, we'll just use the system prompt + current question for simplicity in this prototype
-    
     prompt = SYSTEM_PROMPT.format(context_str=context_str, user_question=question)
     
-    # 3. Call LLM with Retry
+    # 3. Call LLM with Retry & Streaming
     import time
     max_retries = 3
     base_delay = 2
     
+    response_stream = None
+    
     for attempt in range(max_retries):
         try:
-            response = model.generate_content(prompt)
+            response_stream = model.generate_content(prompt, stream=True)
             break
         except Exception as e:
             if "429" in str(e) or "quota" in str(e).lower() or "resource exhausted" in str(e).lower():
                 if attempt < max_retries - 1:
                     sleep_time = base_delay * (2 ** attempt)
-                    print(f"Quota exceeded, retrying in {sleep_time}s...")
+                    print(f"Quota exceeded (stream), retrying in {sleep_time}s...")
                     time.sleep(sleep_time)
                     continue
             raise e
-    answer_text = response.text
-    
-    # 4. Format Response
-    return {
-        "answer": answer_text,
-        "sources": retrieved_chunks
-    }
+
+    # Yield chunks
+    full_answer = ""
+    try:
+        for chunk in response_stream:
+            if chunk.text:
+                full_answer += chunk.text
+                yield chunk.text
+    except Exception as e:
+        yield f"\n[Error during streaming: {e}]"
+
+    # Yield sources at the end as a special marker or just append?
+    # For SSE, we can send events. But for simple stream, we might just append text.
+    # Or we can yield a JSON object if using SSE.
+    # Let's yield a delimiter and then the sources JSON
+    import json
+    yield "\n\n__SOURCES__\n"
+    yield json.dumps(retrieved_chunks)

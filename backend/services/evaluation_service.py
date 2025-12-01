@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
-from .chat_service import generate_answer
+from services.chat_service import generate_answer_stream
+import json
 
 # Hardcoded test cases
 TEST_CASES = [
@@ -40,12 +41,28 @@ async def run_evals() -> Dict[str, Any]:
     passed_count = 0
     
     for test in TEST_CASES:
-        # Run the query through the RAG pipeline
-        response = await generate_answer(test["question"])
-        answer = response["answer"].lower()
+        # Run the query through the RAG pipeline (consuming stream)
+        full_answer = ""
+        sources = []
+        is_sources = False
+        
+        async for chunk in generate_answer_stream(test["question"]):
+            if chunk == "\n\n__SOURCES__\n":
+                is_sources = True
+                continue
+            
+            if is_sources:
+                try:
+                    sources = json.loads(chunk)
+                except:
+                    pass
+            else:
+                full_answer += chunk
+        
+        answer_lower = full_answer.lower()
         
         # Check for expected keywords
-        found_keywords = [kw for kw in test["expected_keywords"] if kw.lower() in answer]
+        found_keywords = [kw for kw in test["expected_keywords"] if kw.lower() in answer_lower]
         
         # Determine status
         if found_keywords:
@@ -57,11 +74,11 @@ async def run_evals() -> Dict[str, Any]:
         results.append({
             "id": test["id"],
             "question": test["question"],
-            "answer": response["answer"],
+            "answer": full_answer,
             "expected_keywords": test["expected_keywords"],
             "found_keywords": found_keywords,
             "status": status,
-            "sources": [s["doc_name"] for s in response["sources"]]
+            "sources": [s["doc_name"] for s in sources] if sources else []
         })
         
     return {

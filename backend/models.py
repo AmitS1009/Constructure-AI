@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any, Optional
 
 class ChunkMetadata(BaseModel):
     doc_name: str
@@ -14,7 +14,8 @@ class IngestResponse(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str
-    history: Optional[List[Dict[str, str]]] = []
+    history: List[Dict[str, str]] = []
+    thread_id: Optional[int] = None
 
 class QueryResponse(BaseModel):
     answer: str

@@ -12,6 +12,8 @@ services:
       - .env
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
 
   frontend:
     build: ./frontend
@@ -24,3 +26,17 @@ services:
       - VITE_API_URL=http://localhost:8000
     depends_on:
       - backend
+
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=project_brain
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:

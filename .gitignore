@@ -24,3 +24,9 @@ docker-compose.override.yml
 # OS
 .DS_Store
 Thumbs.db
+
+test_door_schedule.pdf
+verify_key.py
+update_env_db.py
+
+update_env.py

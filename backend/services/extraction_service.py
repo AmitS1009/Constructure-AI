@@ -8,7 +8,7 @@ from .retrieval_service import hybrid_search
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel(os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash"))
 
-EXTRACTION_PROMPT = """You are extracting a door schedule. Input: a set of retrieved text chunks. Output: JSON array of door objects with exact keys: mark, location, width_mm, height_mm, fire_rating, material, source_references (array of {file,page,chunk,excerpt}). 
+EXTRACTION_PROMPT = """You are extracting a door schedule. Input: a set of retrieved text chunks. Output: JSON array of door objects with exact keys: mark, location, width_mm, height_mm, fire_rating, material, source_references (array of {{file,page,chunk,excerpt}}). 
 Rules:
 - Output MUST be valid JSON only (no extra commentary).
 - If a field is missing, set its value to null.

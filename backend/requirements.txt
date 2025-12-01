@@ -10,3 +10,7 @@ pypdf
 pdfminer.six
 python-multipart
 requests
+sqlalchemy
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]

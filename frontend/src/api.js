@@ -6,16 +6,26 @@ const api = axios.create({
     baseURL: API_URL,
 });
 
-export const ingestFiles = async (files) => {
+// Add request interceptor to include auth token
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
+});
+
+export const ingestFiles = async (files, threadId = null) => {
     const formData = new FormData();
     Array.from(files).forEach((file) => {
         formData.append('files', file);
     });
-    const response = await api.post('/ingest', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
+    if (threadId) {
+        formData.append('thread_id', threadId);
+    }
+    const response = await api.post('/ingest', formData);
     return response.data;
 };
 

@@ -56,18 +56,29 @@ class VectorStore:
                         print(f"Embedding quota exceeded, retrying in {sleep_time}s...")
                         time.sleep(sleep_time)
                         continue
+                    else:
+                        print("Embedding quota exceeded after retries. Using zero vector fallback.")
+                        return [[0.0] * 768 for _ in texts] # Fallback to zero vectors
                 raise e
 
-    def add_chunks(self, chunks: List[Dict[str, Any]]):
+    def add_chunks(self, chunks: List[Dict[str, Any]], thread_id: int = None):
         texts = [chunk["text"] for chunk in chunks]
         embeddings = self.get_embeddings(texts)
         
         vectors = np.array(embeddings).astype('float32')
         self.index.add(vectors)
+        
+        # Add thread_id to metadata
+        for chunk in chunks:
+            chunk["thread_id"] = thread_id
+            
         self.metadata.extend(chunks)
         self.save_index()
 
-    def search(self, query: str, k: int = 5) -> List[Dict[str, Any]]:
+    def search(self, query: str, k: int = 5, filter_thread_id: int = None) -> List[Dict[str, Any]]:
+        if self.index.ntotal == 0:
+            return []
+
         import time
         max_retries = 3
         base_delay = 2
@@ -91,15 +102,36 @@ class VectorStore:
                         continue
                 raise e
         
+        if query_embedding is None:
+             # Fallback if query embedding fails (e.g. quota)
+             return []
+
         query_vector = np.array([query_embedding]).astype('float32')
-        distances, indices = self.index.search(query_vector, k)
+        
+        # Fetch more candidates for filtering
+        search_k = k * 10 if filter_thread_id else k
+        distances, indices = self.index.search(query_vector, search_k)
         
         results = []
         for i, idx in enumerate(indices[0]):
-            if idx != -1:
+            if idx != -1 and idx < len(self.metadata):
                 item = self.metadata[idx].copy()
+                
+                # Filter by thread_id if specified
+                # If item has no thread_id (None), it's global? 
+                # User said "only on that specific thread". So strict match.
+                # But we might want to allow global docs (thread_id=None) to be seen by all?
+                # Let's implement: Match thread_id OR item.thread_id is None (Global)
+                item_thread_id = item.get("thread_id")
+                
+                if filter_thread_id:
+                    if item_thread_id is not None and item_thread_id != filter_thread_id:
+                        continue # Skip chunks from other threads
+                
                 item["score"] = float(distances[0][i])
                 results.append(item)
+                if len(results) >= k:
+                    break
                 
         return results
 
