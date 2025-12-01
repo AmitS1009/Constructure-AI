@@ -16,7 +16,7 @@ Chat naturally with your PDF documents. Our **Hybrid Search** engine combines:
 
 ### 🔒 **Strict Thread Isolation**
 **No context mixing!** 🛑
-We've engineered a robust isolation layer where every chat thread is a silo.
+I've engineered a robust isolation layer where every chat thread is a silo.
 *   **Uploads are Thread-Specific**: A file uploaded in "Project A" chat won't leak into "Project B".
 *   **Privacy First**: Deleting a thread instantly wipes access to its context.
 
@@ -26,7 +26,7 @@ Stop manual data entry. 🛑
 *   **JSON Mode**: Powered by Gemini's structured output capabilities.
 
 ### 📊 **Built-in Evaluation Suite**
-We don't just guess; we verify.
+I don't just guess; I verify.
 *   **Ragas-inspired Metrics**: Faithfulness, Answer Relevance, and Context Precision.
 *   **Auto-Eval**: Run `test_full_flow.py` to verify the entire pipeline from Login -> Upload -> Extract.
 
@@ -51,16 +51,16 @@ Building a production-grade RAG system isn't just about connecting APIs. On prod
 
 ### 1. 🛑 Solving the "Context Leakage" Crisis (Data Privacy)
 *   **The Problem**: In the initial RAG implementation, all uploaded documents went into a shared vector index. This meant a user asking about "Project A" in one thread could accidentally retrieve confidential details from "Project B".
-*   **The Fix**: We architected a **Strict Thread Isolation** layer.
+*   **The Fix**: I architected a **Strict Thread Isolation** layer.
     *   **Ingestion**: Modified the vector store to tag every document chunk with a unique `thread_id` in its metadata.
     *   **Retrieval**: Rewrote the `hybrid_search` algorithm to enforce a strict filter: `WHERE thread_id = current_thread_id`.
     *   **Result**: 100% data isolation. Deleting a thread now cryptographically "shreds" access to its documents by removing the retrieval key.
 
 ### 2. 📉 Handling API Rate Limits (Resilience Engineering)
 *   **The Problem**: During high-load ingestion, the Google Gemini API would throw `429 Resource Exhausted` errors, causing the entire upload pipeline to crash.
-*   **The Fix**: We implemented a **Graceful Degradation Strategy**.
+*   **The Fix**: I implemented a **Graceful Degradation Strategy**.
     *   Added **Exponential Backoff** retries for transient failures.
-    *   Created a **Zero-Vector Fallback**: If the embedding API fails after retries, we inject a zero-vector placeholder but keep the text metadata. This allows the system to seamlessly switch to **Keyword-Only Search** for those specific chunks, ensuring no data is ever lost.
+    *   Created a **Zero-Vector Fallback**: If the embedding API fails after retries, I inject a zero-vector placeholder but keep the text metadata. This allows the system to seamlessly switch to **Keyword-Only Search** for those specific chunks, ensuring no data is ever lost.
 
 ### 3. 👻 The "Ghost UI" (Frontend Architecture)
 *   **The Problem**: The Extraction page was rendering as a blank white screen, despite no console errors.
@@ -68,11 +68,11 @@ Building a production-grade RAG system isn't just about connecting APIs. On prod
 
 ### 4. 🔐 Dependency Hell: The Bcrypt Incompatibility
 *   **The Problem**: The authentication system crashed with `AttributeError: module 'bcrypt' has no attribute '__about__'`, breaking the login flow.
-*   **The Fix**: Investigated the dependency tree and found a conflict between `passlib` (used for password hashing) and newer versions of `bcrypt`. We pinned the dependency to `bcrypt==3.2.2`, ensuring stable cryptographic operations.
+*   **The Fix**: Investigated the dependency tree and found a conflict between `passlib` (used for password hashing) and newer versions of `bcrypt`. I pinned the dependency to `bcrypt==3.2.2`, ensuring stable cryptographic operations.
 
 ### 5. 📜 Infinite Scroll & Flexbox Physics
 *   **The Problem**: Chat history wasn't scrolling, trapping users at the top of long conversations.
-*   **The Fix**: The Flexbox container was missing a critical constraint. We applied `min-h-0` to the scrollable child, forcing the browser to calculate height based on the parent's constraint rather than the content's intrinsic size.
+*   **The Fix**: The Flexbox container was missing a critical constraint. I applied `min-h-0` to the scrollable child, forcing the browser to calculate height based on the parent's constraint rather than the content's intrinsic size.
 
 ---
 
@@ -116,21 +116,21 @@ python test_full_flow.py
 While the current system is production-ready for small-to-medium workloads, I have a clear path to enterprise scale:
 
 ### 1. 🚀 Breaking the Rate Limit Barrier (Cost vs. Scale)
-*   **Current State**: We utilize the **Gemini Free Tier** for embeddings, which imposes strict rate limits (hence our robust retry/fallback logic).
+*   **Current State**: I utilize the **Gemini Free Tier** for embeddings, which imposes strict rate limits (hence our robust retry/fallback logic).
 *   **Future Upgrade**: Moving to **Paid Tier APIs** (e.g., OpenAI `text-embedding-3-small` Anthropicor Gemini Pro) would instantly remove the 429 errors and allow for massive parallel ingestion.
 
 ### 2. 🗄️ From In-Memory to Distributed Vector DB
-*   **Current State**: We use **FAISS** in local mode for lightning-fast, zero-latency retrieval.
-*   **Future Upgrade**: For managing millions of documents, we would migrate to a distributed vector database like **Pinecone**, **Weaviate**, or **Milvus**. This would enable:
+*   **Current State**: I use **FAISS** in local mode for lightning-fast, zero-latency retrieval.
+*   **Future Upgrade**: For managing millions of documents, I would migrate to a distributed vector database like **Pinecone**, **Weaviate**, or **Milvus**. This would enable:
     *   Horizontal scaling.
     *   Cloud-native persistence.
     *   Advanced metadata filtering at scale.
 
 ### 3. 👁️ OCR for Scanned Blueprints
-*   **Current State**: We process digital PDFs using `pdfminer.six`.
+*   **Current State**: I process digital PDFs using `pdfminer.six`.
 *   **Future Upgrade**: Integrating **Tesseract** or **Google Cloud Vision** to extract text from scanned images and blueprints, unlocking a massive new category of data.
 
 ---
 
-Built with ❤️ by **Amit Kushwaha**
+Built with ❤️ by **Amit Kushwaha** : 
 **Design Philosophy**: "Make it work, then make it beautiful, then make it fast."
