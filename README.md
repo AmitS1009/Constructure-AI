@@ -109,5 +109,28 @@ python test_full_flow.py
 
 ---
 
+---
+
+## 🔮 Future Roadmap & Scalability
+
+While the current system is production-ready for small-to-medium workloads, I have a clear path to enterprise scale:
+
+### 1. 🚀 Breaking the Rate Limit Barrier (Cost vs. Scale)
+*   **Current State**: We utilize the **Gemini Free Tier** for embeddings, which imposes strict rate limits (hence our robust retry/fallback logic).
+*   **Future Upgrade**: Moving to **Paid Tier APIs** (e.g., OpenAI `text-embedding-3-small` Anthropicor Gemini Pro) would instantly remove the 429 errors and allow for massive parallel ingestion.
+
+### 2. 🗄️ From In-Memory to Distributed Vector DB
+*   **Current State**: We use **FAISS** in local mode for lightning-fast, zero-latency retrieval.
+*   **Future Upgrade**: For managing millions of documents, we would migrate to a distributed vector database like **Pinecone**, **Weaviate**, or **Milvus**. This would enable:
+    *   Horizontal scaling.
+    *   Cloud-native persistence.
+    *   Advanced metadata filtering at scale.
+
+### 3. 👁️ OCR for Scanned Blueprints
+*   **Current State**: We process digital PDFs using `pdfminer.six`.
+*   **Future Upgrade**: Integrating **Tesseract** or **Google Cloud Vision** to extract text from scanned images and blueprints, unlocking a massive new category of data.
+
+---
+
 Built with ❤️ by **Amit Kushwaha**
 **Design Philosophy**: "Make it work, then make it beautiful, then make it fast."
