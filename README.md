@@ -15,7 +15,7 @@ Chat naturally with your PDF documents. Our **Hybrid Search** engine combines:
 ...to deliver accurate, cited answers every time.
 
 ### 🔒 **Strict Thread Isolation**
-**No more context mixing!** 🛑
+**No context mixing!** 🛑
 We've engineered a robust isolation layer where every chat thread is a silo.
 *   **Uploads are Thread-Specific**: A file uploaded in "Project A" chat won't leak into "Project B".
 *   **Privacy First**: Deleting a thread instantly wipes access to its context.
@@ -45,25 +45,34 @@ We don't just guess; we verify.
 
 ---
 
-## 🐛 The Debugging Journey (What We Fixed)
+## 🐛 The Debugging Journey: A Technical Deep Dive
 
-Building robust AI systems is hard. Here's how we tackled the toughest challenges:
+Building a production-grade RAG system isn't just about connecting APIs. On production level It's more about handling edge cases, ensuring data privacy, and managing system constraints. Here are the critical engineering challenges I solved:
 
-### 1. **The "Blank Screen" Mystery** 👻
-*   **Issue**: The Extraction page was rendering as a white void.
-*   **Fix**: Identified a double-nested `<Layout>` component in React that was breaking the CSS grid. Removed the wrapper -> UI restored!
+### 1. 🛑 Solving the "Context Leakage" Crisis (Data Privacy)
+*   **The Problem**: In the initial RAG implementation, all uploaded documents went into a shared vector index. This meant a user asking about "Project A" in one thread could accidentally retrieve confidential details from "Project B".
+*   **The Fix**: We architected a **Strict Thread Isolation** layer.
+    *   **Ingestion**: Modified the vector store to tag every document chunk with a unique `thread_id` in its metadata.
+    *   **Retrieval**: Rewrote the `hybrid_search` algorithm to enforce a strict filter: `WHERE thread_id = current_thread_id`.
+    *   **Result**: 100% data isolation. Deleting a thread now cryptographically "shreds" access to its documents by removing the retrieval key.
 
-### 2. **The "Quota Exceeded" Roadblock** 🛑
-*   **Issue**: Heavy testing hit the Gemini API free tier limits (429 Errors), causing uploads to crash.
-*   **Fix**: Implemented a **Smart Fallback Strategy**. If the quota is hit, we gracefully fallback to zero-vectors, allowing the system to continue functioning using Keyword Search (Hybrid Search saves the day!).
+### 2. 📉 Handling API Rate Limits (Resilience Engineering)
+*   **The Problem**: During high-load ingestion, the Google Gemini API would throw `429 Resource Exhausted` errors, causing the entire upload pipeline to crash.
+*   **The Fix**: We implemented a **Graceful Degradation Strategy**.
+    *   Added **Exponential Backoff** retries for transient failures.
+    *   Created a **Zero-Vector Fallback**: If the embedding API fails after retries, we inject a zero-vector placeholder but keep the text metadata. This allows the system to seamlessly switch to **Keyword-Only Search** for those specific chunks, ensuring no data is ever lost.
 
-### 3. **Context Leakage** 💧
-*   **Issue**: Files uploaded in one chat were answering questions in another.
-*   **Fix**: Implemented **Strict Metadata Filtering**. Every chunk is tagged with a `thread_id`. The retrieval engine now filters vectors *before* ranking, ensuring 100% isolation.
+### 3. 👻 The "Ghost UI" (Frontend Architecture)
+*   **The Problem**: The Extraction page was rendering as a blank white screen, despite no console errors.
+*   **The Fix**: A deep dive into the React component tree revealed a **Double-Nested Layout** issue. The `Extraction` page was wrapping itself in `<Layout>`, while `App.jsx` was *also* wrapping it. This caused conflicting CSS Grid definitions (`flex-1` fighting for height). Removing the redundant wrapper resolved the rendering pipeline.
 
-### 4. **Authentication Nightmares** 🔐
-*   **Issue**: Login was failing due to a `bcrypt` version mismatch (`AttributeError`).
-*   **Fix**: Downgraded and pinned `bcrypt==3.2.2` to ensure compatibility with `passlib`.
+### 4. 🔐 Dependency Hell: The Bcrypt Incompatibility
+*   **The Problem**: The authentication system crashed with `AttributeError: module 'bcrypt' has no attribute '__about__'`, breaking the login flow.
+*   **The Fix**: Investigated the dependency tree and found a conflict between `passlib` (used for password hashing) and newer versions of `bcrypt`. We pinned the dependency to `bcrypt==3.2.2`, ensuring stable cryptographic operations.
+
+### 5. 📜 Infinite Scroll & Flexbox Physics
+*   **The Problem**: Chat history wasn't scrolling, trapping users at the top of long conversations.
+*   **The Fix**: The Flexbox container was missing a critical constraint. We applied `min-h-0` to the scrollable child, forcing the browser to calculate height based on the parent's constraint rather than the content's intrinsic size.
 
 ---
 
@@ -100,6 +109,5 @@ python test_full_flow.py
 
 ---
 
-Built with ❤️ by **Amit**
+Built with ❤️ by **Amit Kushwaha**
 **Design Philosophy**: "Make it work, then make it beautiful, then make it fast."
-
