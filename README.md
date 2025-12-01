@@ -32,6 +32,23 @@ I don't just guess; I verify.
 
 ---
 
+**Screen Shots**
+---
+Login :
+<img width="1917" height="860" alt="image" src="https://github.com/user-attachments/assets/16863d5b-a828-476a-aea8-cb13df43b803" />
+
+Chat :
+<img width="1917" height="868" alt="image" src="https://github.com/user-attachments/assets/9caf3e14-c593-4433-8c7c-14cf445c7033" />
+
+Extraction : 
+<img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/ba97e47a-e336-43e7-9720-d3e855ba2716" />
+
+Evaluation :
+<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/6dc5c176-3ff2-488f-9884-384facadfe05" />
+
+
+---
+
 ## 🛠️ Tech Stack
 
 | Component | Technology |
