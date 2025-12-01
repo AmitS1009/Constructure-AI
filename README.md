@@ -1,119 +1,105 @@
-# Project Brain
+# 🏗️ Constructure AI (Project Brain)
 
-## Overview
-**Project Brain** is a production-like AI assistant designed for the construction industry. It serves as a "Project Brain" for a single construction project, allowing users to ingest PDF documents (specifications, drawings, schedules) and interact with them through a RAG (Retrieval-Augmented Generation) pipeline.
+> **The Intelligent Assistant for Construction Documentation** 🚀
 
-The system features a **FastAPI backend** for heavy lifting (ingestion, vector search, LLM interaction) and a modern **React (Vite)** frontend for a seamless user experience. It uses **Google's Gemini API** for both embeddings and text generation.
-
-## Features
-- **PDF Ingestion**: Upload and chunk construction documents.
-- **RAG Chat**: Ask questions about the project with precise source citations.
-- **Structured Extraction**: Automatically extract specific data (e.g., Door Schedules) into structured tables.
-- **Evaluation Suite**: Built-in testing to measure RAG performance against ground-truth queries.
-- **Hybrid Retrieval**: Combines vector similarity with keyword search for better accuracy.
+Welcome to **Constructure AI**, a cutting-edge RAG (Retrieval-Augmented Generation) system designed to revolutionize how construction professionals interact with complex project documents. Whether you need to extract door schedules, verify fire ratings, or simply chat with your blueprints, Constructure AI has you covered.
 
 ---
 
-## How to Run Locally
+## ✨ Key Features
+
+### 💬 **Context-Aware Chat (RAG)**
+Chat naturally with your PDF documents. Our **Hybrid Search** engine combines:
+*   **Vector Search** (Semantic understanding via Gemini Embeddings)
+*   **Keyword Search** (Precise term matching)
+...to deliver accurate, cited answers every time.
+
+### 🔒 **Strict Thread Isolation**
+**No more context mixing!** 🛑
+We've engineered a robust isolation layer where every chat thread is a silo.
+*   **Uploads are Thread-Specific**: A file uploaded in "Project A" chat won't leak into "Project B".
+*   **Privacy First**: Deleting a thread instantly wipes access to its context.
+
+### 📑 **Automated Extraction**
+Stop manual data entry. 🛑
+*   **Door Schedule Extractor**: Automatically parses PDFs to extract structured data (Mark, Width, Height, Fire Rating) into a clean UI table.
+*   **JSON Mode**: Powered by Gemini's structured output capabilities.
+
+### 📊 **Built-in Evaluation Suite**
+We don't just guess; we verify.
+*   **Ragas-inspired Metrics**: Faithfulness, Answer Relevance, and Context Precision.
+*   **Auto-Eval**: Run `test_full_flow.py` to verify the entire pipeline from Login -> Upload -> Extract.
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, TailwindCSS, Lucide Icons |
+| **Backend** | FastAPI, Uvicorn, SQLAlchemy |
+| **AI / LLM** | Google Gemini 1.5 Flash (GenAI) |
+| **Vector DB** | FAISS (Facebook AI Similarity Search) |
+| **Auth** | OAuth2 + JWT (Secure Login/Signup) |
+| **PDF Processing** | PDFMiner.six |
+
+---
+
+## 🐛 The Debugging Journey (What We Fixed)
+
+Building robust AI systems is hard. Here's how we tackled the toughest challenges:
+
+### 1. **The "Blank Screen" Mystery** 👻
+*   **Issue**: The Extraction page was rendering as a white void.
+*   **Fix**: Identified a double-nested `<Layout>` component in React that was breaking the CSS grid. Removed the wrapper -> UI restored!
+
+### 2. **The "Quota Exceeded" Roadblock** 🛑
+*   **Issue**: Heavy testing hit the Gemini API free tier limits (429 Errors), causing uploads to crash.
+*   **Fix**: Implemented a **Smart Fallback Strategy**. If the quota is hit, we gracefully fallback to zero-vectors, allowing the system to continue functioning using Keyword Search (Hybrid Search saves the day!).
+
+### 3. **Context Leakage** 💧
+*   **Issue**: Files uploaded in one chat were answering questions in another.
+*   **Fix**: Implemented **Strict Metadata Filtering**. Every chunk is tagged with a `thread_id`. The retrieval engine now filters vectors *before* ranking, ensuring 100% isolation.
+
+### 4. **Authentication Nightmares** 🔐
+*   **Issue**: Login was failing due to a `bcrypt` version mismatch (`AttributeError`).
+*   **Fix**: Downgraded and pinned `bcrypt==3.2.2` to ensure compatibility with `passlib`.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Python 3.10+**
-- **Node.js 18+**
-- **Gemini API Key** (Get one from Google AI Studio)
+*   Python 3.10+
+*   Node.js 18+
+*   Google Gemini API Key
 
-### 1. Environment Setup
-Create a `.env` file in the root directory (copy from `.env.example`):
+### Backend Setup
 ```bash
-cp .env.example .env
-```
-**Required Environment Variables:**
-```env
-GEMINI_API_KEY=your_actual_api_key_here
-GEMINI_MODEL_NAME=gemini-2.5-flash  # or gemini-1.5-flash
+cd backend
+pip install -r requirements.txt
+# Create .env file with GEMINI_API_KEY
+python -m uvicorn main:app --reload
 ```
 
-### 2. Run Backend (FastAPI)
-1. Navigate to the backend folder:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # Windows:
-   venv\Scripts\activate
-   # Mac/Linux:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Start the server:
-   ```bash
-   python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-   ```
-   *The API will be available at `http://localhost:8000`*
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### 3. Run Frontend (React + Vite)
-1. Navigate to the frontend folder:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   *The UI will be available at `http://localhost:5173` (or 5174 if port is busy)*
+### Running Tests
+```bash
+# Verify Thread Isolation
+python test_isolation.py
+
+# Verify Full Pipeline
+python test_full_flow.py
+```
 
 ---
 
-## Deployment
+Built with ❤️ by **Amit**
+**Design Philosophy**: "Make it work, then make it beautiful, then make it fast."
 
-### Deployed Vercel URL
-*Placeholder*: `https://project-brain-frontend.vercel.app` (Not currently deployed)
-
-To deploy the frontend to Vercel:
-1. Push code to GitHub.
-2. Import repo in Vercel.
-3. Set Root Directory to `frontend`.
-4. Add Environment Variable: `VITE_API_URL=https://your-backend-url.com`.
-
----
-
-## Technical Notes
-
-### Chunking & Indexing
-- **Chunking**: We use `pdfminer.six` to extract text page-by-page. Text is chunked into segments of approximately 800 characters with a 100-character overlap to preserve context across boundaries.
-- **Indexing**: Chunks are embedded using `Gemini embedding-001` (768 dimensions) and stored in a **FAISS** (Facebook AI Similarity Search) index for efficient similarity retrieval. Metadata (doc name, page number, text) is stored alongside.
-
-### RAG Pipeline
-1. **Hybrid Search**: When a user asks a question, we perform two searches:
-   - **Vector Search**: Finds conceptually similar chunks.
-   - **Keyword Search**: Finds exact text matches (boosts specific terms like "Door Type A").
-2. **Reranking**: Results are merged and reranked based on a combined score.
-3. **Generation**: The top 5 relevant chunks are fed into the **Gemini 2.5 Flash** model with a system prompt that enforces strict citation rules (`[File - Page X]`).
-
-### Structured Extraction
-For the "Door Schedule" task, we bypass the standard chat loop. We retrieve chunks relevant to "doors", "frames", and "hardware", and then prompt the LLM with a **strict JSON schema**. This forces the model to output structured data (Mark, Width, Height, Fire Rating) instead of free text, which the frontend then renders as a table.
-
-### Tools Used
-- **Ingestion**: `pdfminer.six` (Python)
-- **Vector DB**: `faiss-cpu` (Python)
-- **LLM**: `google-generativeai` (Python SDK)
-- **Evaluation**: Custom Python script (`evaluation_service.py`) that runs test cases and checks for expected keywords in the response.
-
----
-
-## Future Improvements & Retrospective
-
-If I had more time, I would introduce the following enhancements:
-
-1.  **Memory & Persistence**: Currently, chat history is ephemeral. I would implement a database (PostgreSQL/SQLite) to store conversation threads (`thread_id`), allowing users to revisit past discussions and maintaining context over long sessions.
-2.  **Authentication**: A login page would be added to secure project data and allow multiple users to have private workspaces.
-3.  **Advanced Evaluation**: With more project data, I would implement a more robust evaluation framework (using RAGAS or DeepEval) to quantitatively measure faithfulness and answer relevance, rather than just keyword matching.
-4.  **Model Upgrades**: While Gemini is powerful, integrating paid APIs like **OpenAI (GPT-4o)** or **Anthropic (Claude 3.5 Sonnet)** could potentially offer better reasoning capabilities for complex construction queries and more reliable structured data extraction.
