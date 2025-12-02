@@ -16,7 +16,7 @@ Chat naturally with your PDF documents. Our **Hybrid Search** engine combines:
 
 ### 🔒 **Strict Thread Isolation**
 **No context mixing!** 🛑
-We've engineered a robust isolation layer where every chat thread is a silo.
+I've engineered a robust isolation layer where every chat thread is a silo.
 *   **Uploads are Thread-Specific**: A file uploaded in "Project A" chat won't leak into "Project B".
 *   **Privacy First**: Deleting a thread instantly wipes access to its context.
 
@@ -26,12 +26,25 @@ Stop manual data entry. 🛑
 *   **JSON Mode**: Powered by Gemini's structured output capabilities.
 
 ### 📊 **Built-in Evaluation Suite**
-We don't just guess; we verify.
+I don't just guess; I verify.
 *   **Ragas-inspired Metrics**: Faithfulness, Answer Relevance, and Context Precision.
 *   **Auto-Eval**: Run `test_full_flow.py` to verify the entire pipeline from Login -> Upload -> Extract.
 
 ---
 
+**Screen Shots**
+---
+Login :
+<img width="1917" height="860" alt="image" src="https://github.com/user-attachments/assets/16863d5b-a828-476a-aea8-cb13df43b803" />
+
+Chat :
+<img width="1917" height="868" alt="image" src="https://github.com/user-attachments/assets/9caf3e14-c593-4433-8c7c-14cf445c7033" />
+
+Extraction : 
+<img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/ba97e47a-e336-43e7-9720-d3e855ba2716" />
+
+Evaluation :
+<img width="1919" height="865" alt="image" src="https://github.com/user-attachments/assets/6dc5c176-3ff2-488f-9884-384facadfe05" />
 
 
 ---
@@ -152,5 +165,5 @@ While the current system is production-ready for small-to-medium workloads, I ha
 
 ---
 
-Built with ❤️ by **Amit Kushwaha**
+Built with ❤️ by **Amit Kushwaha** : 
 **Design Philosophy**: "Make it work, then make it beautiful, then make it fast."
