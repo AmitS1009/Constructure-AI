@@ -24,7 +24,10 @@ models_db.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Project Brain API", version="0.2.0")
 
 # CORS
-origins = ["*"]
+origins = [
+    "http://localhost:5173",
+    "https://constructure-ai-murex.vercel.app"
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,6 +36,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Routers
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

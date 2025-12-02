@@ -7,15 +7,19 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import os
+import logging
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
+DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes")
 
 # Config
 SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 class UserCreate(BaseModel):
     email: str
@@ -26,7 +30,13 @@ class Token(BaseModel):
     token_type: str
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        ok = pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        if DEBUG:
+            logger.exception("Error verifying password: %s", e)
+        raise
+    return ok
 
 def get_password_hash(password):
     return pwd_context.hash(password)
@@ -59,7 +69,20 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
+    if not db_user:
+        if DEBUG:
+            logger.debug("Login attempt for non-existent user: %s", user.email)
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+
+    try:
+        verified = verify_password(user.password, db_user.hashed_password)
+    except Exception:
+        # If verification raises (e.g. backend mismatch), treat as auth failure
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+
+    if not verified:
+        if DEBUG:
+            logger.debug("Password verification failed for user: %s", user.email)
         raise HTTPException(status_code=401, detail="Incorrect email or password")
     
     access_token = create_access_token(data={"sub": db_user.email})
