@@ -6,6 +6,7 @@ from typing import List
 import json
 import os
 from dotenv import load_dotenv
+import logging
 
 from database import engine, get_db, SessionLocal
 import models_db
@@ -18,20 +19,34 @@ from models import IngestResponse, QueryRequest
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+DEBUG = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes")
+
 # Create Tables
 models_db.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Project Brain API", version="0.2.0")
 
 # CORS
-origins = [
-    "http://localhost:5173",
-    "https://constructure-ai-murex.vercel.app"
-]
+# Allow configuring CORS origins via env var `CORS_ORIGINS` (comma-separated).
+# During local debug (`DEBUG=true`) we allow all origins to simplify development.
+cors_env = os.getenv("CORS_ORIGINS")
+if DEBUG:
+    allow_origins = ["*"]
+else:
+    if cors_env:
+        allow_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+    else:
+        allow_origins = [
+            "http://localhost:5173",
+            "https://constructure-ai-murex.vercel.app"
+        ]
+
+logger.info("CORS allow_origins=%s (DEBUG=%s)", allow_origins, DEBUG)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
