@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MessageSquare, Table, CheckSquare, Upload } from 'lucide-react';
-import clsx from 'clsx';
+import { MessageSquare, Table, CheckSquare, Upload, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const NavItem = ({ to, icon: Icon, label }) => {
     const location = useLocation();
@@ -10,12 +10,10 @@ const NavItem = ({ to, icon: Icon, label }) => {
     return (
         <Link
             to={to}
-            className={clsx(
-                "flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200",
-                isActive
+            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
                     ? "bg-brand-accent text-white shadow-lg shadow-brand-accent/20"
                     : "text-gray-400 hover:bg-white/5 hover:text-white"
-            )}
+                }`}
         >
             <Icon size={20} />
             <span className="font-medium">{label}</span>
@@ -24,6 +22,8 @@ const NavItem = ({ to, icon: Icon, label }) => {
 };
 
 const Layout = ({ children }) => {
+    const { logout } = useAuth();
+
     return (
         <div className="flex h-screen overflow-hidden bg-transparent">
             {/* Sidebar */}
@@ -41,7 +41,15 @@ const Layout = ({ children }) => {
                     <NavItem to="/eval" icon={CheckSquare} label="Evaluation" />
                 </nav>
 
-                <div className="p-6">
+                <div className="p-6 space-y-4">
+                    <button
+                        onClick={logout}
+                        className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-all duration-200"
+                    >
+                        <LogOut size={20} />
+                        <span className="font-medium">Logout</span>
+                    </button>
+
                     <div className="bg-white/5 rounded-xl p-4 border border-white/5">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
